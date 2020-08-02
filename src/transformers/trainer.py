@@ -1,5 +1,5 @@
 import logging
-import math
+import math, json
 import os
 import re
 import shutil
@@ -473,6 +473,17 @@ class Trainer:
         train_iterator = trange(
             epochs_trained, int(num_train_epochs), desc="Epoch", disable=not self.is_local_master()
         )
+
+        print('Saving label map to file ...')
+        print(self.train_dataset.get_labels())
+        label_map_file = os.path.join(self.args.output_dir, "label_map.json")
+        label_map_dict = {}
+        for i in range(len(self.train_dataset.get_labels())):
+            label_map_dict[i] = self.train_dataset.get_labels()[i]
+        print(label_map_dict)
+        with open(label_map_file, 'w') as fp:
+            json.dump(label_map_dict, fp)
+
         for epoch in train_iterator:
             if isinstance(train_dataloader, DataLoader) and isinstance(train_dataloader.sampler, DistributedSampler):
                 train_dataloader.sampler.set_epoch(epoch)
@@ -803,13 +814,17 @@ class Trainer:
         preds: torch.Tensor = None
         label_ids: torch.Tensor = None
         model.eval()
+        #print(model)
+        #print(torch.sum(model.classifier.weight))
+        #print(model.classifier.weight[:3,0])
+        #print(type(model.classifier.weight))
+        #print(torch.sum(model.classifier.weight, dim=1))
 
         if is_torch_tpu_available():
             dataloader = pl.ParallelLoader(dataloader, [self.args.device]).per_device_loader(self.args.device)
 
         if self.args.past_index >= 0:
             past = None
-
         for inputs in tqdm(dataloader, desc=description):
             has_labels = any(inputs.get(k) is not None for k in ["labels", "lm_labels", "masked_lm_labels"])
 
@@ -839,6 +854,10 @@ class Trainer:
                         label_ids = inputs["labels"].detach()
                     else:
                         label_ids = torch.cat((label_ids, inputs["labels"].detach()), dim=0)
+                #print(inputs)
+                #print(preds)
+                #print(label_ids)
+                #s
 
         if self.args.local_rank != -1:
             # In distributed mode, concatenate all results from all nodes:
@@ -852,7 +871,6 @@ class Trainer:
                 preds = xm.mesh_reduce("eval_preds", preds, torch.cat)
             if label_ids is not None:
                 label_ids = xm.mesh_reduce("eval_label_ids", label_ids, torch.cat)
-
         # Finally, turn the aggregated tensors into numpy arrays.
         if preds is not None:
             preds = preds.cpu().numpy()
