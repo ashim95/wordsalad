@@ -121,6 +121,9 @@ def main():
         num_labels=num_labels,
         finetuning_task=data_args.task_name,
         cache_dir=model_args.cache_dir,
+        criterion=training_args.criterion,
+        label_smoothing=training_args.label_smoothing,
+        focal_gamma=training_args.focal_gamma
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
@@ -166,6 +169,9 @@ def main():
         eval_dataset=eval_dataset,
         compute_metrics=build_compute_metrics_fn(data_args.task_name),
     )
+
+    # Temporarily adding tokenizer inside trained for word_repalcement function call
+    trainer.tokenizer = tokenizer
 
     # Training
     if training_args.do_train:

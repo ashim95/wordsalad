@@ -32,6 +32,8 @@ from .trainer_utils import (
 )
 from .training_args import TrainingArguments
 
+from .additions import replace_tokens, freeze_full_bert
+
 
 if is_apex_available():
     from apex import amp
@@ -406,6 +408,8 @@ class Trainer:
             scheduler.load_state_dict(torch.load(os.path.join(model_path, "scheduler.pt")))
 
         model = self.model
+        if self.args.freeze_full_bert:
+            freeze_full_bert(self.model, logger)
         if self.args.fp16:
             if not is_apex_available():
                 raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
@@ -480,7 +484,7 @@ class Trainer:
         label_map_dict = {}
         for i in range(len(self.train_dataset.get_labels())):
             label_map_dict[i] = self.train_dataset.get_labels()[i]
-        print(label_map_dict)
+        #print(label_map_dict)
         with open(label_map_file, 'w') as fp:
             json.dump(label_map_dict, fp)
 
@@ -506,6 +510,14 @@ class Trainer:
                 if steps_trained_in_current_epoch > 0:
                     steps_trained_in_current_epoch -= 1
                     continue
+                if self.args.word_replacement > 0:
+                    #print('Before Replacement ')
+                    #print(inputs['input_ids'])
+                    new_input_ids = replace_tokens(inputs['input_ids'], self.tokenizer, self.args)
+                    inputs['input_ids'] = new_input_ids
+                    #print('After Replacement ')
+                    #print(inputs['input_ids'])
+
 
                 tr_loss += self._training_step(model, inputs, optimizer)
 
@@ -641,11 +653,45 @@ class Trainer:
         if self.args.gradient_accumulation_steps > 1:
             loss = loss / self.args.gradient_accumulation_steps
 
-        if self.args.fp16:
-            with amp.scale_loss(loss, optimizer) as scaled_loss:
-                scaled_loss.backward()
+        if self.args.input_grad_regularization > 0.0:
+            # If using input gradient regularization, can't use loss.backward()
+            # Refer: https://discuss.pytorch.org/t/second-order-derivatives-of-loss-function/71797
+            # Also Refer : https://discuss.pytorch.org/t/how-to-penalize-norm-of-end-to-end-jacobian/62771/27
+            params_to_consider = []
+            #for name, param in model.roberta.embeddings.named_parameters():
+            for name, param in model.bert.embeddings.named_parameters():
+                if 'embeddings' in name:
+                    params_to_consider.append(param)
+            #print('Now going to print grad params....')
+            #print(params_to_consider)
+            grad_params = torch.autograd.grad(loss, params_to_consider, create_graph=True, only_inputs=True)
+            #grad_params = torch.autograd.grad(loss, model.parameters(), create_graph=True)
+            #print(type(grad_params))
+            #print(len(grad_params))
+            ##print(grad_params)
+            #print(grad_params[0].shape)
+            #print(grad_params[1].shape)
+            #print(grad_params[2].shape)
+            #print(torch.sum(grad_params[0]))
+            #print(torch.sum(grad_params[1]))
+            #print(torch.sum(grad_params[2]))
+            grad_params_list = []
+            for gp in grad_params:
+                grad_params_list.append(gp.view(-1))
+            grad_norm = torch.norm(torch.cat(grad_params_list))
+            #print(grad_norm)
+
+            final_loss = loss + self.args.input_grad_regularization * grad_norm
+            final_loss.backward()
+            #print(loss, final_loss)
+            #_ = torch.autograd.grad(final_loss, model.parameters())
+
         else:
-            loss.backward()
+            if self.args.fp16:
+                with amp.scale_loss(loss, optimizer) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                loss.backward()
 
         return loss.item()
 

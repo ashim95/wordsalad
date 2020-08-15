@@ -220,6 +220,16 @@ class TrainingArguments:
         metadata={"help": "If >=0, uses the corresponding part of the output as the past state for next step."},
     )
 
+    # New arguments added
+    word_replacement: float = field(default=0.0, metadata={"help": "Word replacement ratio. No word replacement with val 0.0"})
+    criterion: str = field(default=None, metadata={"help": "Specify the loss function"})
+    label_smoothing: float = field(default=0.1, metadata={"help": "Specify smoothing parameter if using label smoothing loss"})
+    focal_gamma: float = field(default=2.0, metadata={"help": "Specify gamma parameter if using focal loss"})
+    freeze_full_bert: bool = field(default=False, metadata={"help": "Freeze Pre-trained bert layers, only train final classification layer."})
+    input_grad_regularization: float = field(default=0.0, metadata={"help": "Whether to regularize input gradients. Might slow the code, because of"
+                                                                                " the second order derivatives involved."})
+
+
     @property
     def train_batch_size(self) -> int:
         """

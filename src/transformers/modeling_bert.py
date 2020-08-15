@@ -30,6 +30,7 @@ from .activations import gelu, gelu_new, swish
 from .configuration_bert import BertConfig
 from .file_utils import add_code_sample_docstrings, add_start_docstrings, add_start_docstrings_to_callable
 from .modeling_utils import PreTrainedModel, find_pruneable_heads_and_indices, prune_linear_layer
+from .criterions import LabelSmoothedCrossEntropy, FocalLoss
 
 
 logger = logging.getLogger(__name__)
@@ -1280,8 +1281,19 @@ class BertForSequenceClassification(BertPreTrainedModel):
                 loss_fct = MSELoss()
                 loss = loss_fct(logits.view(-1), labels.view(-1))
             else:
-                loss_fct = CrossEntropyLoss()
-                loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                if self.config.criterion is None:
+                    # Use CrossEntropy Loss
+                    loss_fct = CrossEntropyLoss()
+                    loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                elif self.config.criterion.lower() == 'label_smoothing':
+                    loss_fct = LabelSmoothedCrossEntropy(self.config.label_smoothing)
+                    loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                elif self.config.criterion.lower() == 'focal':
+                    loss_fct = FocalLoss(self.config.focal_gamma)
+                    loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
+                else:
+                    raise NotImplementedError
+
             outputs = (loss,) + outputs
 
         return outputs  # (loss), logits, (hidden_states), (attentions)

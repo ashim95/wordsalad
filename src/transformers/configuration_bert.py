@@ -123,6 +123,9 @@ class BertConfig(PretrainedConfig):
         initializer_range=0.02,
         layer_norm_eps=1e-12,
         pad_token_id=0,
+        criterion=None,
+        label_smoothing=0.1,
+        focal_gamma=2.0,
         gradient_checkpointing=False,
         **kwargs
     ):
@@ -141,3 +144,8 @@ class BertConfig(PretrainedConfig):
         self.initializer_range = initializer_range
         self.layer_norm_eps = layer_norm_eps
         self.gradient_checkpointing = gradient_checkpointing
+
+        self.criterion = criterion
+        self.label_smoothing = label_smoothing
+        self.focal_gamma = focal_gamma
+
