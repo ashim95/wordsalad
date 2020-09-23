@@ -149,6 +149,7 @@ class PreTrainedTokenizerFast(PreTrainedTokenizerBase):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
     ) -> Dict[str, Any]:
         """ Convert the encoding representation (from low-level HuggingFace tokenizer output) to a python Dict.
@@ -182,6 +183,9 @@ class PreTrainedTokenizerFast(PreTrainedTokenizerBase):
                 encoding_dict["offset_mapping"].append(e.offsets)
             if return_length:
                 encoding_dict["length"].append(len(e.ids))
+            if return_input_pair_lengths:
+                NotImplementedError("return_input_pair_lengths not implemented in tokenization_utils_fast.py")
+
 
         return encoding_dict
 
@@ -300,6 +304,7 @@ class PreTrainedTokenizerFast(PreTrainedTokenizerBase):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -355,6 +360,7 @@ class PreTrainedTokenizerFast(PreTrainedTokenizerBase):
                 return_special_tokens_mask=return_special_tokens_mask,
                 return_offsets_mapping=return_offsets_mapping,
                 return_length=return_length,
+                return_input_pair_lengths=return_input_pair_lengths,
                 verbose=verbose,
             )
             for encoding in encodings
@@ -395,6 +401,7 @@ class PreTrainedTokenizerFast(PreTrainedTokenizerBase):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -416,6 +423,7 @@ class PreTrainedTokenizerFast(PreTrainedTokenizerBase):
             return_special_tokens_mask=return_special_tokens_mask,
             return_offsets_mapping=return_offsets_mapping,
             return_length=return_length,
+            return_input_pair_lengths=return_input_pair_lengths,
             verbose=verbose,
             **kwargs,
         )

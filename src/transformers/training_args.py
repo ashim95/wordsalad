@@ -230,6 +230,15 @@ class TrainingArguments:
                                                                                 " the second order derivatives involved."})
 
 
+    # Perturbation Arguments
+    perturbation: str = field(default='all', metadata={"help": "Which Perturbations to evaluate on"})
+    reject: bool = field(
+            default=False, metadata={'help':'Is evaluating for reject class'})
+
+    save_perturb_output_dir: str = field(default='', metadata={"help": "Directory to save perturbation output to"})
+    temperature_scaling: float = field(default=1.0, metadata={"help": "If to run temperature scaling for calibration, provide temperature scaling value after calibrating using run_glue_temp_scaling.py"})
+
+
     @property
     def train_batch_size(self) -> int:
         """

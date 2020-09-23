@@ -53,6 +53,7 @@ class Split(Enum):
     train = "train"
     dev = "dev"
     test = "test"
+    other = "other"
 
 
 class GlueDataset(Dataset):
@@ -72,6 +73,9 @@ class GlueDataset(Dataset):
         limit_length: Optional[int] = None,
         mode: Union[str, Split] = Split.train,
         cache_dir: Optional[str] = None,
+        return_input_pair_lengths: bool = False,
+        other_split_prefix=None,
+        other_split_filename=None,
     ):
         self.args = args
         self.processor = glue_processors[args.task_name]()
@@ -85,7 +89,7 @@ class GlueDataset(Dataset):
         cached_features_file = os.path.join(
             cache_dir if cache_dir is not None else args.data_dir,
             "cached_{}_{}_{}_{}".format(
-                mode.value, tokenizer.__class__.__name__, str(args.max_seq_length), args.task_name,
+                other_split_prefix if other_split_prefix else mode.value, tokenizer.__class__.__name__, str(args.max_seq_length), args.task_name,
             ),
         )
         label_list = self.processor.get_labels()
@@ -118,6 +122,8 @@ class GlueDataset(Dataset):
                     examples = self.processor.get_dev_examples(args.data_dir)
                 elif mode == Split.test:
                     examples = self.processor.get_test_examples(args.data_dir)
+                elif mode == Split.other:
+                    examples = self.processor.get_dev_examples(args.data_dir, dev_file=other_split_filename)
                 else:
                     examples = self.processor.get_train_examples(args.data_dir)
                 if limit_length is not None:
@@ -128,6 +134,7 @@ class GlueDataset(Dataset):
                     max_length=args.max_seq_length,
                     label_list=label_list,
                     output_mode=self.output_mode,
+                    return_input_pair_lengths=return_input_pair_lengths,
                 )
                 start = time.time()
                 torch.save(self.features, cached_features_file)

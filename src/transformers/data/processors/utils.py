@@ -19,7 +19,7 @@ import dataclasses
 import json
 import logging
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 from ...file_utils import is_tf_available, is_torch_available
 
@@ -73,6 +73,7 @@ class InputFeatures:
     attention_mask: Optional[List[int]] = None
     token_type_ids: Optional[List[int]] = None
     label: Optional[Union[int, float]] = None
+    input_pair_lengths: Optional[List[Tuple[int, int]]] = None
 
     def to_json_string(self):
         """Serializes this instance to a JSON string."""

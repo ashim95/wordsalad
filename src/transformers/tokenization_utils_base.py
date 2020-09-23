@@ -1566,6 +1566,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -1644,6 +1645,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
                 return_special_tokens_mask=return_special_tokens_mask,
                 return_offsets_mapping=return_offsets_mapping,
                 return_length=return_length,
+                return_input_pair_lengths=return_input_pair_lengths,
                 verbose=verbose,
                 **kwargs,
             )
@@ -1665,6 +1667,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
                 return_special_tokens_mask=return_special_tokens_mask,
                 return_offsets_mapping=return_offsets_mapping,
                 return_length=return_length,
+                return_input_pair_lengths=return_input_pair_lengths,
                 verbose=verbose,
                 **kwargs,
             )
@@ -1688,6 +1691,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -1733,6 +1737,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
             return_special_tokens_mask=return_special_tokens_mask,
             return_offsets_mapping=return_offsets_mapping,
             return_length=return_length,
+            return_input_pair_lengths=return_input_pair_lengths,
             verbose=verbose,
             **kwargs,
         )
@@ -1755,6 +1760,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -1785,6 +1791,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -1828,6 +1835,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
             return_special_tokens_mask=return_special_tokens_mask,
             return_offsets_mapping=return_offsets_mapping,
             return_length=return_length,
+            return_input_pair_lengths=return_input_pair_lengths,
             verbose=verbose,
             **kwargs,
         )
@@ -1856,6 +1864,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -1993,6 +2002,7 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         prepend_batch_axis: bool = False,
         **kwargs
@@ -2059,6 +2069,10 @@ class PreTrainedTokenizerBase(SpecialTokensMixin):
         if add_special_tokens:
             sequence = self.build_inputs_with_special_tokens(ids, pair_ids)
             token_type_ids = self.create_token_type_ids_from_sequences(ids, pair_ids)
+            if return_input_pair_lengths and pair:
+                encoded_inputs['input_pair_lengths'] = (len(ids), len(pair_ids))
+            if return_input_pair_lengths and not pair:
+                encoded_inputs['input_pair_lengths'] = (len(ids), -1)
         else:
             sequence = ids + pair_ids if pair else ids
             token_type_ids = [0] * len(ids) + ([1] * len(pair_ids) if pair else [])

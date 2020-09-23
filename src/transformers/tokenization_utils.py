@@ -417,6 +417,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -470,6 +471,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
             return_length=return_length,
+            return_input_pair_lengths=return_input_pair_lengths,
             verbose=verbose,
         )
 
@@ -497,6 +499,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         return_special_tokens_mask: bool = False,
         return_offsets_mapping: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
         **kwargs
     ) -> BatchEncoding:
@@ -550,6 +553,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
             return_overflowing_tokens=return_overflowing_tokens,
             return_special_tokens_mask=return_special_tokens_mask,
             return_length=return_length,
+            return_input_pair_lengths=return_input_pair_lengths,
             return_tensors=return_tensors,
             verbose=verbose,
         )
@@ -572,6 +576,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
         return_overflowing_tokens: bool = False,
         return_special_tokens_mask: bool = False,
         return_length: bool = False,
+        return_input_pair_lengths: bool = False,
         verbose: bool = True,
     ) -> BatchEncoding:
         """ Prepares a sequence of input id, or a pair of sequences of inputs ids so that it can be used by the model.
@@ -598,6 +603,7 @@ class PreTrainedTokenizer(PreTrainedTokenizerBase):
                 return_overflowing_tokens=return_overflowing_tokens,
                 return_special_tokens_mask=return_special_tokens_mask,
                 return_length=return_length,
+                return_input_pair_lengths=return_input_pair_lengths,
                 return_tensors=None,  # We convert the whole batch to tensors at the end
                 prepend_batch_axis=False,
                 verbose=verbose,

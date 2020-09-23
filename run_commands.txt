@@ -13,3 +13,8 @@ python examples/text-classification/run_glue.py --model_name_or_path bert-base-u
 python examples/text-classification/run_glue.py --model_name_or_path ../models/mnli/bert-base-input_grad_reg_0.0001 --task_name MNLI --do_train --do_eval --data_dir data/mnli/ --max_seq_length 256 --per_device_eval_batch_size=16 --per_device_train_batch_size=16 --num_train_epochs 2.0 --output_dir ../models/mnli/bert-base-_retrain_input_grad_reg_0.0005 --save_steps 40000 --input_grad_regularization 0.0005 --evaluate_during_training
 
 python examples/text-classification/run_glue.py --model_name_or_path bert-base-uncased --task_name MNLI --do_train --do_eval --data_dir data/mnli_87k_adv/ --max_seq_length 256 --per_device_eval_batch_size=16 --per_device_train_batch_size=32 --learning_rate 2e-5 --num_train_epochs 3.0 --output_dir ../models/mnli/bert-base-textfooler_augmented_87k --overwrite_output_dir --save_steps 40000
+
+
+python examples/text-classification/run_glue.py --model_name_or_path roberta-base --task_name MNLI --do_train --do_eval --data_dir data/MNLI/ --max_seq_length 256 --per_device_eval_batch_size=8 --per_device_train_batch_size=8 --learning_rate 2e-5 --num_train_epochs 3.0 --output_dir tmp/MNLI/roberta-base --save_steps 20000
+
+python perturbations.py --model_name_or_path tmp/MNLI-roberta/ --task_name MNLI --do_eval --data_dir data/MNLI --max_seq_length 450 --per_gpu_eval_batch_size=16 --output_dir tmp/MNLI-roberta/ --perturbation repeat_most_important_words --save_perturb_output_dir tmp/MNLI-roberta/perturbations/

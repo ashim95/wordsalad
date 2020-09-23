@@ -39,6 +39,7 @@ def glue_convert_examples_to_features(
     task=None,
     label_list=None,
     output_mode=None,
+    return_input_pair_lengths=False,
 ):
     """
     Loads a data file into a list of ``InputFeatures``
@@ -62,7 +63,7 @@ def glue_convert_examples_to_features(
             raise ValueError("When calling glue_convert_examples_to_features from TF, the task parameter is required.")
         return _tf_glue_convert_examples_to_features(examples, tokenizer, max_length=max_length, task=task)
     return _glue_convert_examples_to_features(
-        examples, tokenizer, max_length=max_length, task=task, label_list=label_list, output_mode=output_mode
+        examples, tokenizer, max_length=max_length, task=task, label_list=label_list, output_mode=output_mode, return_input_pair_lengths=return_input_pair_lengths
     )
 
 
@@ -102,6 +103,7 @@ def _glue_convert_examples_to_features(
     task=None,
     label_list=None,
     output_mode=None,
+    return_input_pair_lengths=False
 ):
     if max_length is None:
         max_length = tokenizer.max_len
@@ -133,6 +135,7 @@ def _glue_convert_examples_to_features(
         max_length=max_length,
         padding="max_length",
         truncation=True,
+        return_input_pair_lengths=return_input_pair_lengths,
     )
 
     features = []
@@ -214,9 +217,9 @@ class MnliProcessor(DataProcessor):
         """See base class."""
         return self._create_examples(self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
-    def get_dev_examples(self, data_dir):
+    def get_dev_examples(self, data_dir, dev_file='dev_matched.tsv'):
         """See base class."""
-        return self._create_examples(self._read_tsv(os.path.join(data_dir, "dev_matched.tsv")), "dev_matched")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, dev_file)), "dev_matched")
 
     def get_test_examples(self, data_dir):
         """See base class."""
