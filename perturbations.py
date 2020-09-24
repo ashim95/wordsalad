@@ -164,7 +164,6 @@ def get_eval_dataloader(args, eval_dataset):
         sampler=sampler,
         batch_size=args.eval_batch_size,
         collate_fn=default_data_collator,
-        drop_last=args.dataloader_drop_last,
     )
 
     return data_loader
@@ -253,13 +252,14 @@ else:
 
 logger.info('Perturbation functions to evaluate : ' + str(training_args.perturbation))
 
-data_dir = "data/" + data_args.task_name.upper() + '/'
+#data_dir = "data/" + data_args.task_name.upper() + '/'
+data_dir = data_args.data_dir
 
 generated_filenames = {}
 for pert_fn in perturbations.keys():
     if perturbations[pert_fn][0] != 'simple':
         continue
-    generated_filenames[pert_fn] = perturbation_utils.generate_perturbation_simple('dev.tsv', data_args.task_name.lower(),
+    generated_filenames[pert_fn] = perturbation_utils.generate_perturbation_simple('dev_matched.tsv', data_args.task_name.lower(),
                                     data_dir,
                                 training_args.save_perturb_output_dir,
                                 input_format[data_args.task_name.lower()], pert_fn, is_pair=pair_tasks[data_args.task_name.lower()], on_sent2=True)

@@ -333,7 +333,7 @@ def get_gradients(args, model, batch):
     inputs = batch_device
 
 
-    # Take care of mems attribute that XLNet uses
+    # Take care of mems attribute that XLNet uses TODO
     #inputs = {"input_ids": batch[0], "attention_mask": batch[1], "labels": batch[3]}
     #if args.model_type != "distilbert":
     #    inputs["token_type_ids"] = (
@@ -346,6 +346,9 @@ def get_gradients(args, model, batch):
     loss, logits = outputs[:2]
 
     loss.backward()
+
+    if args.model_type.lower() == 'xlnet':
+        return extracted_grads['embed'].permute(1,0,2)
 
     return extracted_grads['embed']
 
@@ -417,7 +420,11 @@ def get_importance_order(args, model, grads, batch, is_pair=True):
 
 
 
+    #print(embeds.shape, grads.shape)
+    #print(batch['input_ids'].shape)
+    #print(batch['input_ids'])
     one_hot_grad = -torch.mul(embeds, grads)
+    #one_hot_grad = torch.mul(embeds, grads)
 
     if not is_pair:
         importance_order_bert = []
@@ -665,6 +672,7 @@ def generate_perturbation_gradient(dataloader, tokenizer, model, args, filename,
     for i in range(len(dataloader)):
         if i %100 == 0:
             print('Done with {0}/{1} batches'.format(i, len(dataloader)))
+       # print('Done with {0}/{1} batches'.format(i, len(dataloader)))
 
         batch = list(dataloader)[i]
         grads = get_gradients(args, model, batch)
@@ -686,6 +694,7 @@ def generate_perturbation_gradient(dataloader, tokenizer, model, args, filename,
             #print(len(examples))
             importance_order_bert1, importance_order_bert2, bert1_tok, bert2_tok, _, _ = get_importance_order(args, model, grads, batch, is_pair=is_pair)
             for j in range(len(importance_order_bert2)):
+                #print(overall_count)
                 ex = examples[overall_count]
                 new_cols = ex[0]
                 if on_sent2:
