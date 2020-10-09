@@ -318,6 +318,8 @@ def get_gradients(args, model, batch):
         add_hooks(model.roberta)
     elif args.model_type == 'bert':
         add_hooks(model.bert)
+    elif args.model_type == 'albert':
+        add_hooks(model.albert)
     elif args.model_type.lower() == 'electra':
         add_hooks(model.electra)
     elif args.model_type == 'bart':
@@ -409,6 +411,8 @@ def get_importance_order(args, model, grads, batch, is_pair=True):
     elif args.model_type == 'bert':
         #embeds = model.bert.embeddings.word_embeddings(batch[0].to(args.device))
         embeds = model.bert.embeddings.word_embeddings(batch['input_ids'].to(args.device))
+    elif args.model_type == 'albert':
+        embeds = model.albert.embeddings.word_embeddings(batch['input_ids'].to(args.device))
     elif args.model_type.lower() == 'electra':
         embeds = model.electra.embeddings.word_embeddings(batch['input_ids'].to(args.device))
     elif args.model_type == 'bart':
@@ -426,6 +430,7 @@ def get_importance_order(args, model, grads, batch, is_pair=True):
     one_hot_grad = -torch.mul(embeds, grads)
     #one_hot_grad = torch.mul(embeds, grads)
 
+    #TODO: Fix for XLNet
     if not is_pair:
         importance_order_bert = []
         bert_tok = []
@@ -449,13 +454,22 @@ def get_importance_order(args, model, grads, batch, is_pair=True):
     bert1_grads = []
     bert2_grads = []
 
-
+    #print(batch['input_ids'])
     for i in range(batch['input_ids'].shape[0]):
         lengths = batch['input_pair_lengths'][i]
-        bert1 = batch['input_ids'][i][1:1 + lengths[0]]
-        bert2 = batch['input_ids'][i][lengths[0] + 3 : lengths[0] + 3 + lengths[1]]
-        grads1 = one_hot_grad[i][1:1 + lengths[0]]
-        grads2 = one_hot_grad[i][lengths[0] + 3 : lengths[0] + 3 + lengths[1]]
+        if args.model_type.lower() == 'xlnet':
+            # ids[i][-2 - lengths[i]: -2]
+            bert1 = batch['input_ids'][i][-2 - lengths[1] - 1 - lengths[0]: -2 - lengths[1] - 1]
+            bert2 = batch['input_ids'][i][-2 - lengths[1]: -2]
+            #print(bert1)
+            #print(bert2)
+            grads1 = one_hot_grad[i][-2 - lengths[1] - 1 - lengths[0]: -2 - lengths[1] - 1]
+            grads2 = one_hot_grad[i][-2 - lengths[1]: -2]
+        else:
+            bert1 = batch['input_ids'][i][1:1 + lengths[0]]
+            bert2 = batch['input_ids'][i][lengths[0] + 3 : lengths[0] + 3 + lengths[1]]
+            grads1 = one_hot_grad[i][1:1 + lengths[0]]
+            grads2 = one_hot_grad[i][lengths[0] + 3 : lengths[0] + 3 + lengths[1]]
         bert1_tok.append(bert1)
         bert2_tok.append(bert2)
         bert1_grads.append(grads1)
